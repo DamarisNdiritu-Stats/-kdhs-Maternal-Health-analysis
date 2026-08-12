@@ -1,0 +1,100 @@
+library(ggplot2)
+library(dplyr)
+library(scales)  # for percent_format()
+
+# Function to plot bar chart with percentages
+plot_percent_bar <- function(data, var, var_label, title, rotate_x=FALSE) {
+  p <- ggplot(data, aes_string(x = var)) +
+    geom_bar(aes(y = (..count..)/sum(..count..)), fill = "#1f77b4") +
+    ylab("Percentage") +
+    xlab(var_label) +
+    ggtitle(title) +
+    scale_y_continuous(labels = percent_format()) +
+    theme_minimal()
+  
+  if (rotate_x) {
+    p <- p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  }
+  
+  return(p)
+}
+
+# -------------------------------
+# 1. Age Group
+# -------------------------------
+plot_percent_bar(maternal, "age_group", "Age Group", "Distribution of Respondents by Age Group")
+
+# -------------------------------
+# 2. Education
+# -------------------------------
+plot_percent_bar(maternal, "education", "Education Level", "Distribution of Respondents by Education Level")
+
+# -------------------------------
+# 3. Marital Status
+# -------------------------------
+plot_percent_bar(maternal, "marital_status", "Marital Status", "Distribution of Respondents by Marital Status")
+
+# -------------------------------
+# 4. Region
+# -------------------------------
+plot_percent_bar(maternal, "region", "Region", "Distribution of Respondents by Region", rotate_x=TRUE)
+
+# -------------------------------
+# 5. Wealth Index
+# -------------------------------
+plot_percent_bar(maternal, "wealth", "Wealth Index", "Distribution of Respondents by Wealth Index")
+
+# -------------------------------
+# 6. Employment Status
+# -------------------------------
+plot_percent_bar(maternal, "employment", "Employment Status", "Distribution of Respondents by Employment Status")
+
+# -------------------------------
+# 7. Insurance
+# -------------------------------
+plot_percent_bar(maternal, "insurance", "Health Insurance", "Distribution of Respondents by Health Insurance")
+
+# -------------------------------
+# 8. Place of Residence
+# -------------------------------
+plot_percent_bar(maternal, "residence", "Place of Residence", "Distribution of Respondents by Place of Residence")
+
+# -------------------------------
+# 9. Parity
+# -------------------------------
+plot_percent_bar(maternal, "parity", "Parity (Number of Children)", "Distribution of Respondents by Parity")
+
+# -------------------------------
+# 10. Media Exposure
+# -------------------------------
+plot_percent_bar(maternal, "media_exposure", "Media Exposure", "Distribution of Respondents by Media Exposure")
+plot_percent_bar(maternal, "facility_delivery", "Delivery at facility", "Distribution of delivery at facility")
+
+# Distance to health facility vs Facility Delivery
+dist_tab <- svytable(~distance + facility_delivery, maternal_design)
+dist_tab
+prop.table(dist_tab, margin = 1) * 100  # row percentages
+
+# Permission to seek care vs Facility Delivery
+perm_tab <- svytable(~permission + facility_delivery, maternal_design)
+perm_tab
+prop.table(perm_tab, margin = 1) * 100  # row percentages
+
+# Media exposure vs Facility Delivery
+media_tab <- svytable(~media_exposure + facility_delivery, maternal_design)
+media_tab
+prop.table(media_tab, margin = 1) * 100  # row percentages
+
+# Distance
+svychisq(~distance + facility_delivery, maternal_design)
+
+# Permission
+svychisq(~permission + facility_delivery, maternal_design)
+
+# Media exposure
+svychisq(~media_exposure + facility_delivery, maternal_design)
+#Residence
+svychisq(~residence + facility_delivery, maternal_design)
+svychisq(~education + facility_delivery, maternal_design)
+svychisq(~employment + facility_delivery, maternal_design)
+svychisq(~distance + facility_delivery, maternal_design)
