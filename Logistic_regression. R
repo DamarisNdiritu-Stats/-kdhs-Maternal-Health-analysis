@@ -1,0 +1,28 @@
+model_unw <- glm(facility_delivery ~ age_group + parity + education + marital_status +
+                   wealth + employment + residence + distance  + media_exposure,
+                 data = maternal, family = binomial)
+summary(model_unw)
+vif_values<-vif(model_unw)
+if(is.matrix(vif_values)) {
+  vif_table <- data.frame(
+    Variable = rownames(vif_values),
+    VIF = round(vif_values[,1], 2)
+  )
+} else {
+  vif_table <- data.frame(
+    Variable = names(vif_values),
+    VIF = round(vif_values, 2)
+  )
+}
+
+print(vif_table)
+View(vif_table)
+pR2(model_unw)
+coef_unw <- tidy(model_unw, exponentiate = TRUE, conf.int = TRUE)
+print(coef_unw)
+tab_model(model_w,
+          show.ci = TRUE,
+          show.se = TRUE,
+          transform = "exp",
+          dv.labels = "Facility Delivery (1=Facility, 0=Home)",
+          title = "Predictors of Facility Delivery")
