@@ -1,0 +1,77 @@
+library(haven)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(broom)
+library(car)
+library(survey)
+library(gmodels)
+library(pscl)
+library(pROC)
+maternal_1<- read_sav("C:/Users/22dam/OneDrive/Desktop/KEIR8CFL.SAV");maternal
+View(maternal_1)
+maternal<-maternal_1[, c("M15$1","V005","V021","V022","V013","V201","V106","V501","V024","V190","V714","V025","V467D","V157","V158","V159")]
+view(maternal)
+str(maternal)
+# Age groups (V013: 5-year categories)
+maternal$age_group <- factor(maternal$V013,
+                         levels = 1:7,
+                         labels = c("15-19","20-24","25-29","30-34","35-39","40-44","45-49"))
+
+# Parity (children ever born)
+maternal$parity <- as.numeric(maternal$V201)
+
+# Education
+maternal$education <- factor(maternal$V106,
+                         levels = c(0,1,2,3),
+                         labels = c("No education","Primary","Secondary","Higher"))
+
+# Marital status
+maternal$marital_status <- factor(maternal$V501,
+                              levels = c(0,1,2,3,4,5),
+                              labels = c("Never married","Married","Living together",
+                                         "Widowed","Divorced","Separated"))
+
+# Region
+maternal$region <- factor(maternal$V024)
+
+# Wealth index
+maternal$wealth <- factor(maternal$V190,
+                      levels = c(1,2,3,4,5),
+                      labels = c("Poorest","Poorer","Middle","Richer","Richest"))
+
+# Employment
+maternal$employment <- factor(maternal$V714, labels = c("Not working","Working"))
+
+
+# Residence
+maternal$residence <- factor(maternal$V025, labels = c("Urban","Rural"))
+
+# Distance to facility
+maternal$distance <- factor(maternal$V467D, labels = c("Not a problem","Big problem"))
+
+
+# Media exposure (example: newspaper frequency)
+maternal <- maternal %>%
+  mutate(media_exposure = ifelse(V157 > 0 | V158 > 0 | V159 > 0, 1, 0),
+         media_exposure = factor(media_exposure,
+                                 levels = c(0,1),
+                                 labels = c("No","Yes")))
+maternal <- maternal %>%
+  filter(!is.na(`M15$1`))
+# Outcome: Facility delivery
+maternal<- maternal %>%
+  mutate(facility_delivery = ifelse(`M15$1` %in% 10:12, 0, 1),
+         facility_delivery = factor(facility_delivery,
+                                    levels = c(0,1),
+                                    labels = c("Home","Facility")))
+
+maternal$weight <- maternal$V005 / 1000000
+
+maternal_design <- svydesign(
+  id = ~V021,
+  strata = ~V022,
+  weights = ~weight,
+  data = maternal,
+  nest = TRUE
+)
